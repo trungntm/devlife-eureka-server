@@ -1,2 +1,1 @@
-# devlife-eureka-server
-devlife-eureka-server
+# Devlife-eureka-server
