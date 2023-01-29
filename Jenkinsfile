@@ -1,8 +1,6 @@
 pipeline {
   agent any
-  options {
-        ansiColor('xterm')
-    }
+  options
     parameters {
       string(name: 'TARGET_BRANCH', defaultValue: 'master', description: '')
     }
