@@ -1,33 +1,83 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.8.7-eclipse-temurin-17'
-            args '-v /root/.m2:/root/.m2'
-        }
+  agent any
+  options {
+        ansiColor('xterm')
     }
-    triggers {
-        pollSCM '* * * * *'
+    parameters {
+      string(name: 'TARGET_BRANCH', defaultValue: 'master', description: '')
     }
+
+    environment {
+       DOCKER_ARGS = "--net=\"host\" -v /home/jenkins/.m2:/.m2"
+    }
+
     stages {
-        stage('Update dependencies') {
-           steps {
-               sh 'mvn dependency:resolve'
-           }
-        }
-        stage('Test') {
-            steps {
-                sh 'mvn clean test'
+      stage('Checkout') {
+          agent {
+            label 'master'
+          }
+
+        steps {
+
+            echo "Checking out source code from $TARGET_BRANCH"
+
+            script {
+                def scmVars = checkout([$class: 'GitSCM', branches: [[name: "*/$TARGET_BRANCH"]],
+                userRemoteConfigs: [[url: 'https://github.com/trungntm/devlife-eureka-server',credentialsId:'trungntm-personal-token']]
+            ])
+
+                env['GIT_COMMIT'] = scmVars.GIT_COMMIT
+                env['PROJECT_NAME'] = 'eureka-server'
+                env['PROJECT_VERSION'] = 'n/a'
+            }
+
+
+            script {
+                def latestCommit = sh(
+                  script: "git show -s ${env.GIT_COMMIT} --format=\"format:%s\"",
+                  returnStdout: true
+                )
+
+                echo "Latest Commit Message: ${latestCommit}"
+                env['BUILD_DESCRIPTION'] = latestCommit
             }
         }
-        stage('Build Image') {
-            steps {
-                sh 'mvn -Pdocker clean install'
+      }
+
+      stage('Build') {
+        agent {
+            docker {
+                image 'openjdk:17-alpine'
+                label 'master'
+                args "$DOCKER_ARGS"
             }
         }
-        stage('Run') {
-            steps {
-                sh 'docker stop devlife-eureka-server || true && docker rm -f devlife-eureka-server || true'
-                sh 'docker run -p 8761:8761 -d --name devlife-eureka-server trungtmnguyen/devlife-eureka-server:latest'
+
+        steps {
+
+            withMaven {
+                sh 'mvn clean install'
+            }
+        }
+      }
+
+
+    }
+
+    post {
+        always {
+            script {
+                if (env.PROJECT_NAME.isEmpty()) {
+                    env.PROJECT_NAME = 'eureka-server'
+                }
+
+                if (env.PROJECT_VERSION.isEmpty()) {
+                    env.PROJECT_VERSION = 'n/a'
+                }
+
+                // in case of failure, we'd like to have simple 'git blame' on build history :)
+                currentBuild.displayName = "${env.PROJECT_NAME} - ${env.PROJECT_VERSION} [$TARGET_BRANCH]"
+                buildDescription("${env.BUILD_DESCRIPTION}")
             }
         }
     }
