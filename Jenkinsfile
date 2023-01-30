@@ -1,10 +1,5 @@
 pipeline {
-  agent {
-    docker {
-        label 'master'
-        image 'docker:dind'
-    }
-  }
+  agent any
   parameters {
     string(name: 'TARGET_BRANCH', defaultValue: 'master', description: '')
   }
