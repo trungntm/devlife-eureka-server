@@ -8,7 +8,7 @@ pipeline {
       DOCKER_ARGS = "--net=\"host\" -v /home/jenkins/.m2:/.m2"
   }
 
-  stage('Checkout') {
+  stages('Checkout') {
     agent {
       label 'master'
     }
