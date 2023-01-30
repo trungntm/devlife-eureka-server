@@ -1,6 +1,7 @@
 pipeline {
   agent {
     docker {
+        label 'master'
         image 'docker:dind'
     }
   }
