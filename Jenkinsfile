@@ -16,11 +16,7 @@ pipeline {
                 '''
             }
         }
-        stage('Update dependencies') {
-           steps {
-               sh 'mvn dependency:resolve'
-           }
-        }
+
         stage('Test') {
             steps {
                 sh 'mvn clean test'
