@@ -21,14 +21,17 @@ pipeline {
                sh 'mvn dependency:resolve'
            }
         }
-        stage('Test') {
-            steps {
-                sh 'mvn clean test'
-            }
-        }
-        stage('Build Image') {
+        stage('Test, build & push image') {
             steps {
                 sh 'mvn clean install'
+            }
+        }
+        stage('Start service') {
+            steps {
+                sh '''
+                docker-compose -f /root/devlife down eureka-server
+                docker-compose -f /root/devlife up -d eureka-server
+                '''
             }
         }
     }
