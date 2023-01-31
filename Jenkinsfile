@@ -1,7 +1,7 @@
 pipeline {
     agent any
     tools {
-        maven 'maven-3.6'
+        maven 'maven-3.8'
         jdk 'openjdk-17'
     }
     triggers {
@@ -16,7 +16,11 @@ pipeline {
                 '''
             }
         }
-
+        stage('Update dependencies') {
+           steps {
+               sh 'mvn dependency:resolve'
+           }
+        }
         stage('Test') {
             steps {
                 sh 'mvn clean test'
