@@ -16,21 +16,22 @@ pipeline {
                 '''
             }
         }
-        stage('Update dependencies') {
-           steps {
-               sh 'mvn dependency:resolve'
-           }
-        }
+//         stage('Update dependencies') {
+//            steps {
+//                sh 'mvn dependency:resolve'
+//            }
+//         }
         stage('Test, build & push image') {
             steps {
-                sh 'mvn clean install'
+                sh 'mvn -Pdocker clean install'
             }
         }
         stage('Start service') {
             steps {
                 sh '''
-                docker-compose -f /root/devlife down eureka-server
-                docker-compose -f /root/devlife up -d eureka-server
+                docker system prune -af
+                docker stop eureka-server || true && docker rm -f eureka-server || true
+                docker run -p 8761:8761 -d --name eureka-server --net trungtmnguyen/devlife-eureka-server
                 '''
             }
         }
