@@ -1,8 +1,6 @@
 pipeline {
   agent any
-  parameters {
-    string(name: 'TARGET_BRANCH', defaultValue: 'master', description: '')
-  }
+
 
   stages {
     stage('Environment') {
@@ -18,30 +16,7 @@ pipeline {
 
     stage('Checkout') {
 
-      steps {
-        echo "Checking out source code from $TARGET_BRANCH"
 
-        script {
-          def scmVars = checkout([$class: 'GitSCM', branches: [[name: "*/$TARGET_BRANCH"]],
-          userRemoteConfigs: [[url: 'https://github.com/trungntm/devlife-eureka-server.git',credentialsId:' trungntm-github-personal-token']]
-        ])
-
-          env['GIT_COMMIT'] = scmVars.GIT_COMMIT
-          env['PROJECT_NAME'] = 'eureka-server'
-          env['PROJECT_VERSION'] = 'n/a'
-        }
-
-        script {
-          def latestCommit = sh(
-            script: "git show -s ${env.GIT_COMMIT} --format=\"format:%s\"",
-            returnStdout: true
-          )
-
-          echo "Latest Commit Message: ${latestCommit}"
-          env['BUILD_DESCRIPTION'] = latestCommit
-        }
-      }
-    }
 
     stage('Build') {
       steps {
