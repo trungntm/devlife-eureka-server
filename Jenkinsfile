@@ -1,7 +1,6 @@
 pipeline {
   agent any
 
-
   stages {
     stage('Environment') {
        steps{
@@ -13,10 +12,6 @@ pipeline {
            }
        }
      }
-
-    stage('Checkout') {
-
-
 
     stage('Build') {
       steps {
